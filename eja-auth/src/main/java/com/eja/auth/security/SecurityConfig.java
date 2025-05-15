@@ -13,14 +13,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/public/**").permitAll()
+                .csrf(csrf -> csrf.disable()) // desactivar CSRF si usas JWT
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/public/**", "/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login") // Opcional: define una ruta para el login
+                        .loginPage("/login")
                         .permitAll()
-                );
+                )
+        // Si tienes filtro JWT, agrégalo aquí, antes de UsernamePasswordAuthenticationFilter
+        //.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class)
+        ;
+
         return http.build();
     }
+
+    // Si usas un filtro JWT personalizado, defínelo como @Bean y añádelo aquí
 }

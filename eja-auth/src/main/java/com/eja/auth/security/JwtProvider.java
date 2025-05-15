@@ -2,67 +2,72 @@ package com.eja.auth.security;
 
 
 import com.eja.auth.entity.AuthUser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-
-import jakarta.annotation.PostConstruct; //la importacion da que se debe agregar aqui esto y no el javax
-
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-
-
-
-//import javax.annotation.PostConstruct;
-import java.util.Base64;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @Component
-public class JwtProvider    {
+public class JwtProvider {
+
     @Value("${jwt.secret}")
     private String secret;
 
+    private SecretKey secretKey;
 
     @PostConstruct
     protected void init() {
-        secret = Base64.getEncoder().encodeToString(secret.getBytes());
+        // Inicializar clave secreta para firmas HMAC con SHA-256
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
-
 
     public String createToken(AuthUser authUser) {
         Map<String, Object> claims = new HashMap<>();
-        claims = Jwts.claims().setSubject(authUser.getUserName());
         claims.put("id", authUser.getId());
+
         Date now = new Date();
-        Date exp = new Date(now.getTime() + 3600000);
+        Date exp = new Date(now.getTime() + 3600000); // 1 hora
+
         return Jwts.builder()
                 .setClaims(claims)
+                .setSubject(authUser.getUserName())
                 .setIssuedAt(now)
                 .setExpiration(exp)
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-
     public boolean validate(String token) {
         try {
-            Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
-
+            Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token);
             return true;
-        }catch (Exception e){
+        } catch (JwtException | IllegalArgumentException e) {
+            // token inválido
             return false;
         }
     }
 
-    public String getUserNameFromToken(String token){
+    public String getUserNameFromToken(String token) {
         try {
-            return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
-        }catch (Exception e) {
-            return "bad token";
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getSubject();
+        } catch (JwtException | IllegalArgumentException e) {
+            return null; // o lanzar excepción según tu manejo
         }
     }
 }
-
