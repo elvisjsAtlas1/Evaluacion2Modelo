@@ -28,14 +28,10 @@ spring:
           uri: lb://eja-usuario-service
           predicates:
             - Path=/usuarios/**
-          filters:
-            - AuthFilter
         - id: eja-prestamo-service
           uri: lb://eja-prestamo-service
           predicates:
             - Path=/prestamos/**
-          filters:
-            - AuthFilter
         - id: eja-auth-service
           uri: lb://eja-auth-service
           predicates:
