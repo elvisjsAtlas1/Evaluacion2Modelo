@@ -23,8 +23,7 @@ spring:
           predicates:
             - Path=/libros/**
           filters:
-            - AuthFilter  #con esto esta seguro libro
-
+            - AuthFilter
         - id: eja-usuario-service
           uri: lb://eja-usuario-service
           predicates:
@@ -33,7 +32,6 @@ spring:
           uri: lb://eja-prestamo-service
           predicates:
             - Path=/prestamos/**
-
         - id: eja-auth-service
           uri: lb://eja-auth-service
           predicates:
