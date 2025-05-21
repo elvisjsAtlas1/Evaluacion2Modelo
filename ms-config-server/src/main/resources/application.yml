@@ -10,7 +10,7 @@ spring:
         git:
           uri: https://github.com/elvisjsAtlas1/Evaluacion2Modelo.git
           searchPaths: config-data
-          default-label: main
+          default-label: master
   security:
     user:
 
