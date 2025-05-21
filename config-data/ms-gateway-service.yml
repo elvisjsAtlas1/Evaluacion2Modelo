@@ -35,6 +35,6 @@ spring:
             - Path=/prestamos/**
 
         - id: eja-auth-service
-          uri: lb://eja-auth
+          uri: lb://eja-auth-service
           predicates:
             - path=/auth/**
